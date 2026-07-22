@@ -1,1 +1,62 @@
+name: Build NX30 Pro ImmortalWrt
 
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            clang \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gettext \
+            git \
+            libncurses-dev \
+            libssl-dev \
+            python3 \
+            rsync \
+            unzip \
+            zlib1g-dev
+
+
+      - name: Clone source
+        run: |
+          git clone https://github.com/padavanonly/immortalwrt-mt798x-6.6.git source
+
+
+      - name: Copy NX30 Pro 112M DTS
+        run: |
+          cp files/mt7981b-h3c-magic-nx30-pro-112M.dts \
+          source/target/linux/mediatek/dts/mt7981b-h3c-magic-nx30-pro.dts
+
+
+      - name: Build
+        run: |
+          cd source
+
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+          make menuconfig
+
+          make -j$(nproc)
+
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: NX30Pro-firmware
+          path: source/bin/targets/**
