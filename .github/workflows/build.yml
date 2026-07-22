@@ -38,10 +38,9 @@ jobs:
         git clone https://github.com/padavanonly/immortalwrt-mt798x-6.6.git source
 
 
-    - name: Apply NX30Pro DTS
+    - name: Check source DTS
       run: |
-        cp files/mt7981b-h3c-magic-nx30-pro-112M.dts \
-        source/target/linux/mediatek/dts/mt7981b-h3c-magic-nx30-pro.dts
+        find source/target/linux/mediatek -name "*nx30*"
 
 
     - name: Configure
