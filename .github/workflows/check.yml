@@ -1,0 +1,68 @@
+name: Check NX30Pro MTK Source
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-22.04
+
+    steps:
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            clang \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gettext \
+            git \
+            libncurses-dev \
+            libssl-dev \
+            python3 \
+            rsync \
+            unzip \
+            zlib1g-dev \
+            file
+
+
+      - name: Update feeds
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+
+      - name: Check MTK symbols
+        run: |
+          echo "===== HIT_BIND_FORCE_TO_CPU ====="
+          grep -R "HIT_BIND_FORCE_TO_CPU" target/linux/mediatek 2>/dev/null || true
+
+          echo ""
+          echo "===== MTK_FE_START_RESET ====="
+          grep -R "MTK_FE_START_RESET" target/linux/mediatek 2>/dev/null || true
+
+          echo ""
+          echo "===== MTK_FE_RESET_DONE ====="
+          grep -R "MTK_FE_RESET_DONE" target/linux/mediatek 2>/dev/null || true
+
+          echo ""
+          echo "===== MTK_WIFI_CHIP_ONLINE ====="
+          grep -R "MTK_WIFI_CHIP_ONLINE" target/linux/mediatek 2>/dev/null || true
+
+
+      - name: Check patches
+        run: |
+          echo "===== mediatek patches ====="
+          ls target/linux/mediatek/patches-6.6 2>/dev/null || true
+
+          echo ""
+          echo "===== patch error keywords ====="
+          grep -R "MTK_FE\|HIT_BIND\|WIFI_CHIP" target/linux/mediatek/patches-6.6 2>/dev/null || true
