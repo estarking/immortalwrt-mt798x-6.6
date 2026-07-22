@@ -8,63 +8,54 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            clang \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gettext \
+            git \
+            libncurses-dev \
+            libssl-dev \
+            python3 \
+            rsync \
+            unzip \
+            zlib1g-dev \
+            file \
+            wget \
+            curl
 
+      - name: Update feeds
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y \
-          build-essential \
-          clang \
-          flex \
-          bison \
-          g++ \
-          gawk \
-          gettext \
-          git \
-          libncurses-dev \
-          libssl-dev \
-          python3 \
-          rsync \
-          unzip \
-          zlib1g-dev
+      - name: Load config
+        run: |
+          cp files/.config .config
+          make defconfig
 
+      - name: Download packages
+        run: |
+          make download -j$(nproc)
 
-    - name: Clone ImmortalWrt source
-      run: |
-        git clone https://github.com/padavanonly/immortalwrt-mt798x-6.6.git source
+      - name: Build firmware
+        run: |
+          make -j$(nproc) V=s
 
-
-    - name: Apply NX30Pro 112M DTS
-      run: |
-        cp files/mt7981-h3c-magic-nx30-pro-112M.dts \
-        source/target/linux/mediatek/dts/mt7981b-h3c-magic-nx30-pro.dts
-
-
-    - name: Configure
-      run: |
-        cd source
-
-        cp ../files/.config .config
-
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
-
-        make defconfig
-
-
-    - name: Build firmware
-      run: |
-        cd source
-
-        make -j$(nproc) V=s
-
-
-    - name: Upload firmware
-      uses: actions/upload-artifact@v4
-      with:
-        name: NX30Pro-ImmortalWrt
-        path: source/bin/targets/**
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: NX30Pro-ImmortalWrt
+          path: |
+            bin/targets/**/*.itb
+            bin/targets/**/*.bin
+            bin/packages/**/*.ipk
