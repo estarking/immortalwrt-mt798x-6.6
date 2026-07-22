@@ -47,6 +47,7 @@ jobs:
         run: |
           cd source
 
+          cp ../files/.config .config
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
